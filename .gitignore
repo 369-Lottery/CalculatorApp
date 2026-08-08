@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist2/
+output/
+release-builds/
+CalculatorApp_Portable/
+CalculatorApp_Portable.zip
+CalculatorApp_Setup.exe
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

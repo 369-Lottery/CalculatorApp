@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculator</title>
+  <link rel="stylesheet" href="calculator.css" />
+</head>
+<body>
+  <!-- Drag region for frameless window -->
+  <div class="titlebar" id="titlebar">
+    <div class="titlebar-left">
+      <img src="../assets/animated-icon.svg" class="title-icon" alt="" />
+      <span class="titlebar-title">Calculator</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="btn-min" id="btn-min" title="Minimize">&#x2014;</button>
+      <button class="btn-close" id="btn-close" title="Close">&#x2715;</button>
+    </div>
+  </div>
+
+  <!-- Alert banner -->
+  <div class="alert-banner" id="alert-banner"></div>
+
+  <!-- Main calculator -->
+  <div class="calc-wrapper">
+    <!-- Mode selector (fake, just for look) -->
+    <div class="mode-bar">
+      <span class="mode-active">Standard</span>
+      <span class="mode-item">Scientific</span>
+    </div>
+
+    <!-- Display -->
+    <div class="display-area">
+      <div class="display-expression" id="expression">&nbsp;</div>
+      <div class="display-main" id="display">0</div>
+    </div>
+
+    <!-- Memory row -->
+    <div class="mem-row">
+      <button class="mem-btn" id="mc" title="Memory Clear">MC</button>
+      <button class="mem-btn" id="mr" title="Memory Recall">MR</button>
+      <button class="mem-btn" id="mplus" title="Memory Add">M+</button>
+      <button class="mem-btn" id="mminus" title="Memory Subtract">M−</button>
+      <button class="mem-btn" id="ms" title="Memory Store">MS</button>
+      <button class="mem-btn" id="mlist" title="Memory List">M▾</button>
+    </div>
+
+    <!-- Buttons grid -->
+    <div class="btn-grid">
+      <!-- Row 1 -->
+      <button class="calc-btn fn-btn" data-action="percent" id="btn-percent">%</button>
+      <button class="calc-btn fn-btn" data-action="ce" id="btn-ce">CE</button>
+      <button class="calc-btn fn-btn" data-action="clear" id="btn-clear">C</button>
+      <button class="calc-btn fn-btn" data-action="backspace" id="btn-backspace">⌫</button>
+
+      <!-- Row 2 -->
+      <button class="calc-btn fn-btn" data-action="reciprocal" id="btn-recip">¹⁄ₓ</button>
+      <button class="calc-btn fn-btn" data-action="square" id="btn-square">x²</button>
+      <button class="calc-btn fn-btn" data-action="sqrt" id="btn-sqrt">²√x</button>
+      <button class="calc-btn op-btn" data-action="divide" id="btn-divide">÷</button>
+
+      <!-- Row 3 -->
+      <button class="calc-btn num-btn" data-digit="7" id="btn-7">7</button>
+      <button class="calc-btn num-btn" data-digit="8" id="btn-8">8</button>
+      <button class="calc-btn num-btn" data-digit="9" id="btn-9">9</button>
+      <button class="calc-btn op-btn" data-action="multiply" id="btn-multiply">×</button>
+
+      <!-- Row 4 -->
+      <button class="calc-btn num-btn" data-digit="4" id="btn-4">4</button>
+      <button class="calc-btn num-btn" data-digit="5" id="btn-5">5</button>
+      <button class="calc-btn num-btn" data-digit="6" id="btn-6">6</button>
+      <button class="calc-btn op-btn" data-action="subtract" id="btn-subtract">−</button>
+
+      <!-- Row 5 -->
+      <button class="calc-btn num-btn" data-digit="1" id="btn-1">1</button>
+      <button class="calc-btn num-btn" data-digit="2" id="btn-2">2</button>
+      <button class="calc-btn num-btn" data-digit="3" id="btn-3">3</button>
+      <button class="calc-btn op-btn" data-action="add" id="btn-add">+</button>
+
+      <!-- Row 6 -->
+      <button class="calc-btn fn-btn negate-btn" data-action="negate" id="btn-negate">+/−</button>
+      <button class="calc-btn num-btn" data-digit="0" id="btn-0">0</button>
+      <button class="calc-btn num-btn" data-action="dot" id="btn-dot">.</button>
+      <button class="calc-btn eq-btn" data-action="equals" id="btn-equals">=</button>
+    </div>
+  </div>
+
+  <!-- Failed attempts indicator (invisible until needed) -->
+  <div class="fail-indicator" id="fail-indicator">
+    <span id="fail-dots"></span>
+  </div>
+
+  <!-- Nuclear wipe overlay -->
+  <div class="wipe-overlay" id="wipe-overlay">
+    <div class="wipe-content">
+      <div class="wipe-icon">💥</div>
+      <div class="wipe-title">Access Denied</div>
+      <div class="wipe-sub">All data has been erased.</div>
+      <div class="wipe-progress">
+        <div class="wipe-bar" id="wipe-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- First-time setup overlay -->
+  <div class="setup-overlay" id="setup-overlay">
+    <div class="setup-content">
+      <div class="setup-icon">🔐</div>
+      <div class="setup-title">Set Your Passcode</div>
+      <div class="setup-sub">Enter a number sequence on the calculator, then press <strong>=</strong> to save your passcode.</div>
+      <div class="setup-hint" id="setup-hint">Entered: <span id="setup-preview">—</span></div>
+      <button class="setup-close" id="setup-close">Got it</button>
+    </div>
+  </div>
+
+  <script src="calculator.js"></script>
+</body>
+</html>

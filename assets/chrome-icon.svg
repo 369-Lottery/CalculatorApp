@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Chrome icon simplified -->
+  <circle cx="50" cy="50" r="48" fill="#fff"/>
+  <!-- Outer ring -->
+  <path d="M50 2 A48 48 0 0 1 98 50" stroke="#EA4335" stroke-width="20" fill="none"/>
+  <path d="M98 50 A48 48 0 0 1 26 89.6" stroke="#FBBC05" stroke-width="20" fill="none"/>
+  <path d="M26 89.6 A48 48 0 0 1 2 50" stroke="#34A853" stroke-width="20" fill="none"/>
+  <path d="M2 50 A48 48 0 0 1 50 2" stroke="#4285F4" stroke-width="20" fill="none"/>
+  <!-- Inner circle -->
+  <circle cx="50" cy="50" r="20" fill="#4285F4"/>
+  <circle cx="50" cy="50" r="14" fill="#fff"/>
+</svg>
