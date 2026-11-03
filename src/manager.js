@@ -36,6 +36,11 @@ let pendingRename   = null;
 let chromeFound     = false;
 let telegramFound   = false;
 let facebookFound   = false;
+let activeFilter    = 'all';
+let profilesCache   = [];
+let lastOpenedById  = {};
+
+const FILTER_NAMES = { chrome: 'Chrome', telegram: 'Telegram', facebook: 'Facebook' };
 
 // ─── Phnom Penh Time ──────────────────────────────────────────────────────────
 const TIME_ZONE = 'Asia/Phnom_Penh';
@@ -93,15 +98,54 @@ async function loadProfiles() {
   if (tgRes.success) allProfiles.push(...tgRes.profiles);
   if (fbRes.success) allProfiles.push(...fbRes.profiles);
 
-  document.getElementById('profile-count').textContent = allProfiles.length || '';
+  profilesCache = allProfiles;
+  lastOpenedById = activity.lastOpened;
+  renderProfiles();
+}
 
-  if (!allProfiles.length) {
+// ─── Filter Tabs ──────────────────────────────────────────────────────────────
+function profileType(p) {
+  return p.type || 'chrome';
+}
+
+function renderProfiles() {
+  profileList.innerHTML = '';
+
+  document.querySelectorAll('.filter-tab').forEach((tab) => {
+    const filter = tab.dataset.filter;
+    const count = filter === 'all'
+      ? profilesCache.length
+      : profilesCache.filter(p => profileType(p) === filter).length;
+    tab.querySelector('.filter-count').textContent = count;
+    tab.classList.toggle('active', filter === activeFilter);
+    tab.setAttribute('aria-selected', filter === activeFilter);
+  });
+
+  const matches = (p) => activeFilter === 'all' || profileType(p) === activeFilter;
+
+  if (!profilesCache.some(matches)) {
+    const name = FILTER_NAMES[activeFilter];
+    emptyState.querySelector('.empty-title').textContent = name ? `No ${name} Profiles` : 'No Profiles Found';
+    emptyState.querySelector('.empty-sub').textContent = name
+      ? 'Click Add Profile to create one.'
+      : 'Chrome user data not found or no profiles configured.';
     emptyState.style.display = 'flex';
     return;
   }
 
-  allProfiles.forEach((p, i) => renderCard(p, i, activity.lastOpened[p.id]));
+  emptyState.style.display = 'none';
+  // Keep each profile's index from the full list so its color doesn't change between tabs
+  profilesCache.forEach((p, i) => {
+    if (matches(p)) renderCard(p, i, lastOpenedById[p.id]);
+  });
 }
+
+document.querySelectorAll('.filter-tab').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    activeFilter = tab.dataset.filter;
+    renderProfiles();
+  });
+});
 
 // ─── Render Profile Card ──────────────────────────────────────────────────────
 async function refreshLastOpened(card, profileId) {
@@ -215,6 +259,13 @@ document.getElementById('btn-add').addEventListener('click', () => {
   document.querySelectorAll('.avatar-opt').forEach((o, i) => {
     o.classList.toggle('selected', i === 0);
   });
+  // Start on the type of the tab being viewed
+  if (activeFilter !== 'all') {
+    selectedAppType = activeFilter;
+    document.querySelectorAll('.app-type-opt').forEach((o) => {
+      o.classList.toggle('selected', o.dataset.type === activeFilter);
+    });
+  }
   modalOverlay.classList.add('show');
   setTimeout(() => profileNameEl.focus(), 200);
 });
@@ -259,6 +310,8 @@ document.getElementById('btn-create').addEventListener('click', async () => {
   
   if (res.success) {
     showToast(`Profile "${name}" created!`, 'success');
+    // Stay where the new profile is visible
+    if (activeFilter !== 'all') activeFilter = selectedAppType;
     await loadProfiles();
   } else {
     showToast(res.error || 'Failed to create profile', 'error');
