@@ -40,7 +40,7 @@
     </div>
 
     <div class="section-header">
-      <span class="section-title">Profiles</span>
+      <span class="section-title">Profiles <span class="profile-count" id="profile-count"></span></span>
       <div class="header-actions">
         <button class="action-btn guest-btn" id="btn-guest" title="Open Guest Session">
           <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span> Guest
@@ -203,6 +203,11 @@
             <p class="settings-desc">Convenience tools for the manager.</p>
           </div>
             <div class="settings-form">
+              <p class="settings-desc" id="update-status"></p>
+              <button class="action-btn outline-btn" id="btn-check-update">
+                <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></span> Check for Updates
+              </button>
+              <button class="action-btn" id="btn-download-update" style="display:none">Download Update</button>
               <button class="action-btn outline-btn" id="btn-shortcut">
                 <span class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></span> Create Desktop Shortcut
               </button>

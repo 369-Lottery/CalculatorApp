@@ -32,6 +32,10 @@ html, body {
   color: var(--text);
   user-select: none;
 }
+body {
+  display: flex;
+  flex-direction: column;
+}
 
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
@@ -111,7 +115,8 @@ html, body {
 .manager-body {
   display: flex;
   flex-direction: column;
-  height: calc(620px - 48px);
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -144,7 +149,19 @@ html, body {
   letter-spacing: 0.8px;
   text-transform: uppercase;
   color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
+.profile-count {
+  background: var(--surface2);
+  color: var(--text-dim);
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.profile-count:empty { display: none; }
 .header-actions {
   display: flex;
   gap: 6px;
@@ -178,12 +195,15 @@ html, body {
 /* ── Profile List ─────────────────────────────────────────────────────────── */
 .profile-list {
   flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
-  padding: 0 12px 16px;
+  padding: 2px 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+.profile-list:empty { display: none; }
 
 /* ── Loading State ────────────────────────────────────────────────────────── */
 .loading-state {
@@ -225,31 +245,22 @@ html, body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 12px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s, border-color 0.15s;
   animation: card-in 0.3s ease;
   position: relative;
   overflow: hidden;
-}
-.profile-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: linear-gradient(to bottom, var(--accent), var(--accent2));
-  opacity: 0;
-  transition: opacity 0.2s;
+  flex-shrink: 0;
 }
 .profile-card:hover {
   background: var(--surface2);
-  border-color: rgba(79,142,247,0.25);
-  transform: translateX(2px);
+  border-color: rgba(79,142,247,0.35);
 }
-.profile-card:hover::before { opacity: 1; }
 @keyframes card-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -257,9 +268,9 @@ html, body {
 
 /* Avatar */
 .profile-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -271,15 +282,6 @@ html, body {
   width: 22px;
   height: 22px;
   stroke: var(--avatar-color, currentColor);
-}
-.profile-avatar::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  z-index: -1;
-  opacity: 0.6;
 }
 
 /* Info */
@@ -295,21 +297,38 @@ html, body {
   font-weight: 600;
   color: var(--text);
   font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   display: flex;
   align-items: center;
   gap: 6px;
 }
+.profile-name-text {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .app-badge {
-  color: var(--text-dim);
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  background: var(--accent);
+  color: #fff;
   display: flex;
   align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s;
 }
-.app-badge svg {
-  width: 13px;
-  height: 13px;
+.profile-card:hover .app-badge { border-color: var(--surface2); }
+.app-badge-tg { background: #229ed9; }
+.app-badge-fb { background: #1877f2; }
+.profile-avatar .app-badge svg {
+  width: 10px;
+  height: 10px;
+  stroke: currentColor;
 }
 .profile-email {
   font-size: 12px;
@@ -322,32 +341,46 @@ html, body {
 .profile-opened {
   font-size: 11px;
   color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .profile-tag {
   font-size: 10px;
   font-weight: 600;
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 4px;
-  display: inline-block;
+  flex-shrink: 0;
 }
 .tag-default { background: rgba(39,198,138,0.15); color: var(--accent3); }
 .tag-guest   { background: rgba(124,92,191,0.15); color: #a78bfa; }
 
 /* Card actions */
 .card-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
+  align-items: center;
   gap: 4px;
+  padding: 0 12px 0 32px;
+  background: linear-gradient(to right, transparent, var(--surface2) 28px);
   opacity: 0;
-  transition: opacity 0.2s;
+  pointer-events: none;
+  transition: opacity 0.15s;
 }
-.profile-card:hover .card-actions { opacity: 1; }
+.profile-card:hover .card-actions,
+.profile-card:focus-within .card-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
 .card-btn {
   background: var(--surface3);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   color: var(--text-dim);
   width: 32px;
   height: 32px;
@@ -605,12 +638,20 @@ html, body {
 }
 
 /* Settings Modal Specifics */
+#settings-modal .modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 32px);
+}
 .settings-body {
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-height: 0;
+  overflow-y: auto;
 }
+.settings-section { flex-shrink: 0; }
 .settings-section {
   display: flex;
   flex-direction: column;
@@ -649,34 +690,10 @@ html, body {
 .outline-btn {
   background: transparent;
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: var(--text-dim);
 }
 .outline-btn:hover {
   background: var(--surface2);
   color: var(--text);
   border-color: var(--text-muted);
-}
-
-/* ── App Badge Colors ─────────────────────────────────────────────────────── */
-.app-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  background: rgba(79,142,247,0.15);
-  color: #4f8ef7;
-  vertical-align: middle;
-  margin-right: 4px;
-  flex-shrink: 0;
-}
-.app-badge svg { width: 10px; height: 10px; }
-.app-badge-tg {
-  background: rgba(0,172,238,0.15);
-  color: #00acee;
-}
-.app-badge-fb {
-  background: rgba(24,119,242,0.15);
-  color: #1877f2;
 }

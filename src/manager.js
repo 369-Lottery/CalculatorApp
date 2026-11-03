@@ -93,6 +93,8 @@ async function loadProfiles() {
   if (tgRes.success) allProfiles.push(...tgRes.profiles);
   if (fbRes.success) allProfiles.push(...fbRes.profiles);
 
+  document.getElementById('profile-count').textContent = allProfiles.length || '';
+
   if (!allProfiles.length) {
     emptyState.style.display = 'flex';
     return;
@@ -133,12 +135,12 @@ function renderCard(p, i, lastOpened) {
   card.innerHTML = `
     <div class="profile-avatar" style="background:${avatarBg}; --avatar-color:${color}">
       ${emoji}
+      ${appBadge}
     </div>
     <div class="profile-info">
-      <div class="profile-name">${appBadge} ${escHtml(p.name)}</div>
+      <div class="profile-name"><span class="profile-name-text">${escHtml(p.name)}</span> ${tagHtml}</div>
       ${p.email ? `<div class="profile-email">${escHtml(p.email)}</div>` : ''}
       <div class="profile-opened">Last opened: ${formatTime(lastOpened)}</div>
-      ${tagHtml}
     </div>
     <div class="card-actions">
       <button class="card-btn launch-btn" title="Launch Profile"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px; height:14px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button>
@@ -359,6 +361,8 @@ document.getElementById('btn-settings').addEventListener('click', async () => {
   document.getElementById('new-restore-code').value = '';
   const activity = await window.api.getActivity();
   document.getElementById('last-backup-text').textContent = `Last backup: ${formatTime(activity.lastBackupAt)}`;
+  document.getElementById('update-status').textContent = `Current version: ${await window.api.getAppVersion()}`;
+  document.getElementById('btn-download-update').style.display = 'none';
   settingsModal.classList.add('show');
 });
 
@@ -391,6 +395,38 @@ document.getElementById('btn-save-restore').addEventListener('click', async () =
     document.getElementById('new-restore-code').value = '';
   } else {
     showToast(res.error || 'Failed to update restore code', 'error');
+  }
+});
+
+document.getElementById('btn-check-update').addEventListener('click', async () => {
+  const checkBtn = document.getElementById('btn-check-update');
+  const downloadBtn = document.getElementById('btn-download-update');
+  const status = document.getElementById('update-status');
+
+  checkBtn.disabled = true;
+  downloadBtn.style.display = 'none';
+  status.textContent = 'Checking for updates…';
+
+  const res = await window.api.checkUpdate();
+  checkBtn.disabled = false;
+
+  if (!res.success) {
+    status.textContent = 'Could not check for updates. Check your connection and try again.';
+  } else if (res.updateAvailable) {
+    status.textContent = `Version ${res.latestVersion} is available (you have ${res.currentVersion}).`;
+    downloadBtn.textContent = `Download Version ${res.latestVersion}`;
+    downloadBtn.style.display = '';
+  } else {
+    status.textContent = `You have the latest version (${res.currentVersion}).`;
+  }
+});
+
+document.getElementById('btn-download-update').addEventListener('click', async () => {
+  const res = await window.api.downloadUpdate();
+  if (res.success) {
+    showToast('Close this app, then run the downloaded installer', 'success');
+  } else {
+    showToast(res.error || 'Failed to open download', 'error');
   }
 });
 

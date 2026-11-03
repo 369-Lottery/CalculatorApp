@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -487,6 +487,38 @@ function nuclearWipe() {
 
 
 
+// ─── Update helpers ───────────────────────────────────────────────────────────
+const LATEST_RELEASE_API = 'https://api.github.com/repos/369-Lottery/CalculatorApp/releases/latest';
+const APP_VERSION = require('./package.json').version;
+let updateDownloadUrl = null;
+
+function isNewerVersion(latest, current) {
+  const a = latest.split('.').map(Number);
+  const b = current.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0);
+  }
+  return false;
+}
+
+async function checkForUpdate() {
+  updateDownloadUrl = null;
+  const res = await net.fetch(LATEST_RELEASE_API, {
+    headers: { Accept: 'application/vnd.github+json' },
+    signal: AbortSignal.timeout(15000)
+  });
+  if (!res.ok) throw new Error(`GitHub returned ${res.status}`);
+
+  const release = await res.json();
+  const latestVersion = String(release.tag_name).replace(/^v/, '');
+  const updateAvailable = isNewerVersion(latestVersion, APP_VERSION);
+  if (updateAvailable) {
+    const installer = (release.assets || []).find(a => a.name.endsWith('_Setup.exe'));
+    updateDownloadUrl = installer ? installer.browser_download_url : release.html_url;
+  }
+  return { success: true, currentVersion: APP_VERSION, latestVersion, updateAvailable };
+}
+
 // ─── Window ───────────────────────────────────────────────────────────────────
 let mainWindow;
 
@@ -726,6 +758,25 @@ ipcMain.handle('create-shortcut', async () => {
   } catch (e) {
     return { success: false, error: e.message };
   }
+});
+
+// App version
+ipcMain.handle('get-app-version', async () => APP_VERSION);
+
+// Check GitHub for a newer release
+ipcMain.handle('check-update', async () => {
+  try {
+    return await checkForUpdate();
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// Open the installer download found by the last check
+ipcMain.handle('download-update', async () => {
+  if (!updateDownloadUrl) return { success: false, error: 'No update available' };
+  await shell.openExternal(updateDownloadUrl);
+  return { success: true };
 });
 
 // Uninstall app

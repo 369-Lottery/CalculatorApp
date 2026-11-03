@@ -27,6 +27,10 @@ contextBridge.exposeInMainWorld('api', {
   changePasscode: (oldCode, newCode) => ipcRenderer.invoke('change-passcode', oldCode, newCode),
   changeRestoreCode: (newCode) => ipcRenderer.invoke('change-restore-code', newCode),
 
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  checkUpdate: () => ipcRenderer.invoke('check-update'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+
   createShortcut: () => ipcRenderer.invoke('create-shortcut'),
   uninstallApp: () => ipcRenderer.invoke('uninstall-app'),
   
