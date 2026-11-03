@@ -11,9 +11,12 @@ async function build() {
     await electronInstaller.createWindowsInstaller({
       appDirectory,
       outputDirectory: path.join(__dirname, 'dist2', 'Installer'),
+      title: 'Calculatory',
       authors: 'Calculator',
       exe: 'Calculator.exe',
       setupIcon: path.join(__dirname, 'assets', 'icon.ico'),
+      // Windows Installed apps list icon, downloaded during install
+      iconUrl: 'https://raw.githubusercontent.com/369-Lottery/CalculatorApp/main/assets/icon.ico',
       setupExe: 'CalculatoryApp_Setup.exe',
       noMsi: true
     });
