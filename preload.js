@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('api', {
   deleteProfile: (profileDir) => ipcRenderer.invoke('delete-profile', profileDir),
   renameProfile: (profileDir, newName) => ipcRenderer.invoke('rename-profile', profileDir, newName),
   chromeStatus: () => ipcRenderer.invoke('chrome-status'),
+  getActivity: () => ipcRenderer.invoke('get-activity'),
   lock: () => ipcRenderer.invoke('lock'),
   // Telegram
   getTelegramProfiles: () => ipcRenderer.invoke('get-telegram-profiles'),

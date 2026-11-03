@@ -34,6 +34,11 @@
 
   <!-- Profile list -->
   <div class="manager-body">
+    <div class="pp-clock">
+      <span id="pp-clock-time"></span>
+      <span class="pp-clock-zone">Phnom Penh</span>
+    </div>
+
     <div class="section-header">
       <span class="section-title">Profiles</span>
       <div class="header-actions">
@@ -180,6 +185,14 @@
           <div class="settings-form">
             <input type="password" class="text-input" id="new-restore-code" placeholder="New restore code" />
             <button class="action-btn" id="btn-save-restore">Update Code</button>
+          </div>
+        </div>
+
+        <!-- Backup -->
+        <div class="settings-section">
+          <div class="settings-header">
+            <h3 class="settings-title">Backup</h3>
+            <p class="settings-desc" id="last-backup-text">Last backup: Never</p>
           </div>
         </div>
 

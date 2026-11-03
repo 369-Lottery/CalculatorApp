@@ -115,6 +115,21 @@ html, body {
   overflow: hidden;
 }
 
+/* ── Phnom Penh Clock ─────────────────────────────────────────────────────── */
+.pp-clock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.pp-clock-zone { color: var(--text-dim); }
+
 /* ── Section Header ───────────────────────────────────────────────────────── */
 .section-header {
   display: flex;
@@ -303,6 +318,10 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   margin-top: 2px;
+}
+.profile-opened {
+  font-size: 11px;
+  color: var(--text-dim);
 }
 .profile-tag {
   font-size: 10px;

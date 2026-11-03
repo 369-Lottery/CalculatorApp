@@ -26,6 +26,9 @@ const TELEGRAM_PROFILES_JSON = path.join(APP_DATA_DIR, 'telegram_profiles.json')
 const FACEBOOK_USER_DATA = path.join(APP_DATA_DIR, 'FacebookData');
 const FACEBOOK_PROFILES_JSON = path.join(APP_DATA_DIR, 'facebook_profiles.json');
 
+// Last opened / last backup times (stored in UTC, shown in Phnom Penh time)
+const ACTIVITY_PATH = path.join(APP_DATA_DIR, 'activity.json');
+
 const CHROME_EXE_PATHS = [
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
   'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
@@ -53,6 +56,46 @@ function saveStore(data) {
 
 function hashPasscode(code) {
   return crypto.createHash('sha256').update(code + 'chrome-mgr-salt').digest('hex');
+}
+
+// ─── Activity helpers ─────────────────────────────────────────────────────────
+function loadActivity() {
+  try {
+    if (fs.existsSync(ACTIVITY_PATH)) {
+      const data = JSON.parse(fs.readFileSync(ACTIVITY_PATH, 'utf8'));
+      return { lastOpened: data.lastOpened || {}, lastBackupAt: data.lastBackupAt || null };
+    }
+  } catch (e) {}
+  return { lastOpened: {}, lastBackupAt: null };
+}
+
+function saveActivity(data) {
+  fs.mkdirSync(APP_DATA_DIR, { recursive: true });
+  fs.writeFileSync(ACTIVITY_PATH, JSON.stringify(data, null, 2));
+}
+
+function recordProfileOpened(profileId) {
+  const activity = loadActivity();
+  activity.lastOpened[profileId] = new Date().toISOString();
+  saveActivity(activity);
+}
+
+// Profile ids get reused after a delete, so a deleted profile's time must go too
+function forgetProfileActivity(profileId) {
+  const activity = loadActivity();
+  if (activity.lastOpened[profileId]) {
+    delete activity.lastOpened[profileId];
+    saveActivity(activity);
+  }
+}
+
+function getActivity() {
+  const activity = loadActivity();
+  // Backups made before this was tracked: fall back to the folder's date
+  if (!activity.lastBackupAt && fs.existsSync(BACKUP_DIR)) {
+    activity.lastBackupAt = fs.statSync(BACKUP_DIR).mtime.toISOString();
+  }
+  return activity;
 }
 
 // ─── Chrome helpers ───────────────────────────────────────────────────────────
@@ -147,8 +190,9 @@ function launchChromeProfile(profileDir) {
   } else {
       args.push(`--profile-directory="${profileDir}"`);
   }
-  
+
   exec(`"${chromePath}" ${args.join(' ')}`);
+  if (profileDir !== '__guest__') recordProfileOpened(profileDir);
   return { success: true };
 }
 
@@ -163,6 +207,7 @@ function deleteProfile(profileDir) {
   if (fs.existsSync(profilePath)) {
     fs.rmSync(profilePath, { recursive: true, force: true });
   }
+  forgetProfileActivity(profileDir);
   return { success: true };
 }
 
@@ -226,6 +271,7 @@ function launchTelegramProfile(profileId) {
   
   const workdir = path.join(TELEGRAM_USER_DATA, profileId);
   exec(`"${tgPath}" -workdir "${workdir}"`);
+  recordProfileOpened(profileId);
   return { success: true };
 }
 
@@ -238,6 +284,7 @@ function deleteTelegramProfile(profileId) {
   if (fs.existsSync(profilePath)) {
     fs.rmSync(profilePath, { recursive: true, force: true });
   }
+  forgetProfileActivity(profileId);
   return { success: true };
 }
 
@@ -305,6 +352,7 @@ function launchFacebookProfile(profileId) {
   ];
 
   exec(`"${chromePath}" ${args.join(' ')}`);
+  recordProfileOpened(profileId);
   return { success: true };
 }
 
@@ -317,6 +365,7 @@ function deleteFacebookProfile(profileId) {
   if (fs.existsSync(profilePath)) {
     fs.rmSync(profilePath, { recursive: true, force: true });
   }
+  forgetProfileActivity(profileId);
   return { success: true };
 }
 
@@ -387,6 +436,12 @@ function backupAndWipe() {
         fs.cpSync(TELEGRAM_PROFILES_JSON, tgJsonBackup);
         fs.rmSync(TELEGRAM_PROFILES_JSON, { force: true });
     } catch(e) {}
+  }
+
+  if (fs.existsSync(BACKUP_DIR)) {
+    const activity = loadActivity();
+    activity.lastBackupAt = new Date().toISOString();
+    saveActivity(activity);
   }
 
   // 3. Reset app store
@@ -570,6 +625,9 @@ ipcMain.handle('rename-profile', async (event, profileDir, newName) => {
     return { success: false, error: e.message };
   }
 });
+
+// Get last opened / last backup times
+ipcMain.handle('get-activity', async () => getActivity());
 
 // Get chrome path status
 ipcMain.handle('chrome-status', async () => {

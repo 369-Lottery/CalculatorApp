@@ -37,6 +37,25 @@ let chromeFound     = false;
 let telegramFound   = false;
 let facebookFound   = false;
 
+// ─── Phnom Penh Time ──────────────────────────────────────────────────────────
+const TIME_ZONE = 'Asia/Phnom_Penh';
+const clockFormat = new Intl.DateTimeFormat('en-GB', {
+  timeZone: TIME_ZONE, weekday: 'short', day: 'numeric', month: 'short',
+  hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true
+});
+const dateTimeFormat = new Intl.DateTimeFormat('en-GB', {
+  timeZone: TIME_ZONE, day: 'numeric', month: 'short', year: 'numeric',
+  hour: 'numeric', minute: '2-digit', hour12: true
+});
+
+function formatTime(iso) {
+  return iso ? dateTimeFormat.format(new Date(iso)) : 'Never';
+}
+
+function updateClock() {
+  document.getElementById('pp-clock-time').textContent = clockFormat.format(new Date());
+}
+
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function showToast(msg, type = '') {
   const t = document.createElement('div');
@@ -66,6 +85,7 @@ async function loadProfiles() {
   const chromeRes = await window.api.getProfiles();
   const tgRes = await window.api.getTelegramProfiles();
   const fbRes = await window.api.getFacebookProfiles();
+  const activity = await window.api.getActivity();
   loadingState.style.display = 'none';
 
   let allProfiles = [];
@@ -78,11 +98,16 @@ async function loadProfiles() {
     return;
   }
 
-  allProfiles.forEach((p, i) => renderCard(p, i));
+  allProfiles.forEach((p, i) => renderCard(p, i, activity.lastOpened[p.id]));
 }
 
 // ─── Render Profile Card ──────────────────────────────────────────────────────
-function renderCard(p, i) {
+async function refreshLastOpened(card, profileId) {
+  const activity = await window.api.getActivity();
+  card.querySelector('.profile-opened').textContent = `Last opened: ${formatTime(activity.lastOpened[profileId])}`;
+}
+
+function renderCard(p, i, lastOpened) {
   const color = PROFILE_COLORS[i % PROFILE_COLORS.length];
   const avatarBg = color + '22';
   const emoji = AVATARS[i % AVATARS.length];
@@ -112,6 +137,7 @@ function renderCard(p, i) {
     <div class="profile-info">
       <div class="profile-name">${appBadge} ${escHtml(p.name)}</div>
       ${p.email ? `<div class="profile-email">${escHtml(p.email)}</div>` : ''}
+      <div class="profile-opened">Last opened: ${formatTime(lastOpened)}</div>
       ${tagHtml}
     </div>
     <div class="card-actions">
@@ -133,6 +159,7 @@ function renderCard(p, i) {
         if (!chromeFound) { showToast('Chrome not found', 'error'); return; }
         await window.api.launchProfile(p.id);
     }
+    await refreshLastOpened(card, p.id);
     showToast(`Launched "${p.name}"`, 'success');
   });
 
@@ -163,6 +190,7 @@ function renderCard(p, i) {
         if (!chromeFound) { showToast('Chrome not found', 'error'); return; }
         await window.api.launchProfile(p.id);
     }
+    await refreshLastOpened(card, p.id);
     showToast(`Launching "${p.name}"…`, 'success');
   });
 
@@ -325,10 +353,12 @@ renameInput.addEventListener('keydown', (e) => {
 });
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
-document.getElementById('btn-settings').addEventListener('click', () => {
+document.getElementById('btn-settings').addEventListener('click', async () => {
   document.getElementById('old-passcode').value = '';
   document.getElementById('new-passcode').value = '';
   document.getElementById('new-restore-code').value = '';
+  const activity = await window.api.getActivity();
+  document.getElementById('last-backup-text').textContent = `Last backup: ${formatTime(activity.lastBackupAt)}`;
   settingsModal.classList.add('show');
 });
 
@@ -397,4 +427,6 @@ settingsModal.addEventListener('click', (e) => {
 });
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
+updateClock();
+setInterval(updateClock, 1000);
 loadProfiles();
