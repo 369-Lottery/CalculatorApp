@@ -551,7 +551,7 @@ function createWindow() {
     resizable: false,
     frame: false,
     icon: path.join(__dirname, 'assets', 'icon.ico'),
-    title: 'Calculator',
+    title: 'Calculatory',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
