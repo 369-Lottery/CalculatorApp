@@ -5,7 +5,29 @@ const crypto = require('crypto');
 const { execSync, exec } = require('child_process');
 const os = require('os');
 
+// Older versions created shortcuts named "Electron"; only remove ones pointing at this app
+function removeOldShortcuts() {
+  const startMenuDir = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'GitHub, Inc');
+  const links = [
+    path.join(app.getPath('desktop'), 'Electron.lnk'),
+    path.join(startMenuDir, 'Electron.lnk')
+  ];
+  for (const link of links) {
+    try {
+      if (fs.existsSync(link) && shell.readShortcutLink(link).target.includes('chrome-profile-manager')) {
+        fs.rmSync(link);
+      }
+    } catch (e) {}
+  }
+  try {
+    if (fs.existsSync(startMenuDir) && fs.readdirSync(startMenuDir).length === 0) fs.rmdirSync(startMenuDir);
+  } catch (e) {}
+}
+
 // Handle Squirrel setup events
+if (process.argv[1] === '--squirrel-install' || process.argv[1] === '--squirrel-updated') {
+  removeOldShortcuts();
+}
 if (require('electron-squirrel-startup')) {
   app.exit(0);
   return;
@@ -744,7 +766,7 @@ ipcMain.on('relaunch', () => {
 ipcMain.handle('create-shortcut', async () => {
   try {
     const desktopPath = app.getPath('desktop');
-    const shortcutPath = path.join(desktopPath, 'Calculator.lnk');
+    const shortcutPath = path.join(desktopPath, 'Calculatory.lnk');
     const exePath = process.execPath;
     
     const success = shell.writeShortcutLink(shortcutPath, 'create', {
@@ -752,7 +774,7 @@ ipcMain.handle('create-shortcut', async () => {
       cwd: path.dirname(exePath),
       icon: exePath,
       iconIndex: 0,
-      description: 'Calculator'
+      description: 'Calculatory'
     });
     return { success };
   } catch (e) {
