@@ -9,6 +9,9 @@ release-builds/
 CalculatorApp_Portable/
 CalculatorApp_Portable.zip
 CalculatorApp_Setup.exe
+CalculatoryApp_Portable/
+CalculatoryApp_Portable.zip
+CalculatoryApp_Setup.exe
 
 # OS files
 .DS_Store

@@ -1,5 +1,5 @@
-# CalculatorApp
-CalculatorApp
+# CalculatoryApp
+CalculatoryApp
 
 ## Download & Install
 

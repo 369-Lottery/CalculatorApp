@@ -1,5 +1,5 @@
 @echo off
-echo Uninstalling Calculator App...
+echo Uninstalling CalculatoryApp...
 if exist "%~dp0..\Update.exe" (
     "%~dp0..\Update.exe" --uninstall -s
 ) else if exist "%LocalAppData%\CalculatorApp\Update.exe" (
