@@ -587,7 +587,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 360,
     height: 620,
-    resizable: false,
+    minWidth: 360,
+    minHeight: 620,
     frame: false,
     icon: path.join(__dirname, 'assets', 'icon.ico'),
     title: 'Calculatory',
@@ -599,6 +600,35 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, 'src', 'calculator.html'));
+
+  // Keep the maximize button's icon in step with the window
+  for (const event of ['maximize', 'unmaximize', 'enter-full-screen', 'leave-full-screen']) {
+    mainWindow.on(event, () => mainWindow.webContents.send('window-state', getWindowState()));
+  }
+
+  // F11 toggles full screen
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type === 'keyDown' && input.key === 'F11') {
+      setFullScreen(!mainWindow.isFullScreen());
+      event.preventDefault();
+    }
+  });
+
+  // Leaving full screen drops a maximized window back to its small size
+  mainWindow.on('leave-full-screen', () => {
+    if (wasMaximizedBeforeFullScreen) mainWindow.maximize();
+  });
+}
+
+let wasMaximizedBeforeFullScreen = false;
+
+function setFullScreen(on) {
+  if (on) wasMaximizedBeforeFullScreen = mainWindow.isMaximized();
+  mainWindow.setFullScreen(on);
+}
+
+function getWindowState() {
+  return { maximized: mainWindow.isMaximized(), fullScreen: mainWindow.isFullScreen() };
 }
 
 app.whenReady().then(createWindow);
@@ -788,6 +818,19 @@ ipcMain.handle('rename-facebook-profile', async (event, profileId, newName) => {
 
 // Minimize window
 ipcMain.on('minimize', () => { if (mainWindow) mainWindow.minimize(); });
+
+// Maximize / restore (also leaves full screen)
+ipcMain.on('toggle-maximize', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isFullScreen()) {
+    // The button means "make smaller", so don't re-maximize on the way out
+    wasMaximizedBeforeFullScreen = false;
+    mainWindow.setFullScreen(false);
+  } else if (mainWindow.isMaximized()) mainWindow.unmaximize();
+  else mainWindow.maximize();
+});
+
+ipcMain.handle('get-window-state', async () => getWindowState());
 
 // Lock (return to calculator)
 ipcMain.handle('lock', async () => {

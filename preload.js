@@ -36,4 +36,7 @@ contextBridge.exposeInMainWorld('api', {
   
   relaunch: () => ipcRenderer.send('relaunch'),
   _minimize: () => ipcRenderer.send('minimize'),
+  toggleMaximize: () => ipcRenderer.send('toggle-maximize'),
+  getWindowState: () => ipcRenderer.invoke('get-window-state'),
+  onWindowState: (callback) => ipcRenderer.on('window-state', (event, state) => callback(state)),
 });

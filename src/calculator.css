@@ -26,13 +26,17 @@
 }
 
 html, body {
-  width: 360px;
-  height: 620px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   font-family: 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   user-select: none;
+}
+body {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Title Bar ────────────────────────────────────────────────────────────── */
@@ -44,6 +48,7 @@ html, body {
   padding: 0 8px;
   background: var(--bg);
   -webkit-app-region: drag;
+  flex-shrink: 0;
 }
 .titlebar-left {
   display: flex;
@@ -108,6 +113,8 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── Mode Bar ─────────────────────────────────────────────────────────────── */
@@ -148,7 +155,7 @@ html, body {
   transition: opacity 0.2s;
 }
 .display-main {
-  font-size: 48px;
+  font-size: clamp(48px, 9vh, 96px);
   font-weight: 300;
   letter-spacing: -1px;
   line-height: 1;
@@ -187,7 +194,9 @@ html, body {
 .btn-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(64px, 1fr);
   gap: 2px;
+  flex: 1;
 }
 
 .calc-btn {
@@ -196,7 +205,6 @@ html, body {
   font-family: inherit;
   font-size: 18px;
   font-weight: 400;
-  height: 64px;
   cursor: pointer;
   transition: background 0.1s, transform 0.08s, box-shadow 0.1s;
   position: relative;

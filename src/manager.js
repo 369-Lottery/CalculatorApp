@@ -494,6 +494,17 @@ document.getElementById('btn-close-mgr').addEventListener('click', () => {
   window.close();
 });
 
+// ─── Maximize / Restore ───────────────────────────────────────────────────────
+const maxBtn = document.getElementById('btn-max');
+function showWindowState(state) {
+  const big = state.maximized || state.fullScreen;
+  maxBtn.innerHTML = big ? '&#x2750;' : '&#x25A1;';
+  maxBtn.title = big ? 'Restore' : 'Maximize';
+}
+maxBtn.addEventListener('click', () => window.api.toggleMaximize());
+window.api.onWindowState(showWindowState);
+window.api.getWindowState().then(showWindowState);
+
 document.getElementById('btn-uninstall').addEventListener('click', async () => {
   if (confirm("Are you sure you want to completely uninstall this app? This action cannot be undone.")) {
     const res = await window.api.uninstallApp();
