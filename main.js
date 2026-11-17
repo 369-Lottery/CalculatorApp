@@ -120,6 +120,28 @@ function getActivity() {
   return activity;
 }
 
+// ─── Open-profile check ───────────────────────────────────────────────────────
+// A profile whose window is open has locked files, and an open Chrome rewrites
+// its profile list on exit, so deleting has to wait until it is closed
+function isRunningWithArg(exeName, arg) {
+  try {
+    const out = execSync(
+      `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name='${exeName}'\\" | ForEach-Object { $_.CommandLine }"`,
+      { encoding: 'utf8', windowsHide: true }
+    );
+    return out.toLowerCase().includes(arg.toLowerCase());
+  } catch (e) {
+    return false;
+  }
+}
+
+// Next free folder name, skipping any left behind on disk
+function nextFreeName(prefix, usedNums, baseDir) {
+  let num = usedNums.reduce((max, n) => Math.max(max, n), 0) + 1;
+  while (fs.existsSync(path.join(baseDir, `${prefix}${num}`))) num++;
+  return { num, name: `${prefix}${num}` };
+}
+
 // ─── Chrome helpers ───────────────────────────────────────────────────────────
 function getChromePath() {
   for (const p of CHROME_EXE_PATHS) {
@@ -170,10 +192,11 @@ function addChromeProfile(name) {
   }
 
   const existing = Object.keys(state?.profile?.info_cache || {});
-  const nextNum = existing
-    .map(k => parseInt(k.replace('Profile ', '')) || 0)
-    .reduce((max, n) => Math.max(max, n), 0) + 1;
-  const newDir = `Profile ${nextNum}`;
+  const { num: nextNum, name: newDir } = nextFreeName(
+    'Profile ',
+    existing.map(k => parseInt(k.replace('Profile ', '')) || 0),
+    CHROME_USER_DATA
+  );
   const newPath = path.join(CHROME_USER_DATA, newDir);
 
   fs.mkdirSync(newPath, { recursive: true });
@@ -220,14 +243,18 @@ function launchChromeProfile(profileDir) {
 
 function deleteProfile(profileDir) {
   if (profileDir === 'Default') throw new Error('Cannot delete the Default profile');
-  const state = getLocalState();
-  if (state?.profile?.info_cache?.[profileDir]) {
-    delete state.profile.info_cache[profileDir];
-    saveLocalState(state);
+  // All Chrome profiles share one browser, so any open one blocks this
+  if (isRunningWithArg('chrome.exe', `--user-data-dir="${CHROME_USER_DATA}"`)) {
+    throw new Error('Close all Chrome windows opened from this app, then try again');
   }
   const profilePath = path.join(CHROME_USER_DATA, profileDir);
   if (fs.existsSync(profilePath)) {
     fs.rmSync(profilePath, { recursive: true, force: true });
+  }
+  const state = getLocalState();
+  if (state?.profile?.info_cache?.[profileDir]) {
+    delete state.profile.info_cache[profileDir];
+    saveLocalState(state);
   }
   forgetProfileActivity(profileDir);
   return { success: true };
@@ -268,8 +295,11 @@ function getTelegramProfiles() {
 
 function addTelegramProfile(name, avatarIndex) {
   const profiles = loadTelegramProfiles();
-  const nextIdNum = profiles.length > 0 ? Math.max(...profiles.map(p => parseInt(p.id.replace('tg_', '')) || 0)) + 1 : 1;
-  const newId = `tg_${nextIdNum}`;
+  const { num: nextIdNum, name: newId } = nextFreeName(
+    'tg_',
+    profiles.map(p => parseInt(p.id.replace('tg_', '')) || 0),
+    TELEGRAM_USER_DATA
+  );
   
   const newProfile = {
     id: newId,
@@ -298,14 +328,17 @@ function launchTelegramProfile(profileId) {
 }
 
 function deleteTelegramProfile(profileId) {
-  let profiles = loadTelegramProfiles();
-  profiles = profiles.filter(p => p.id !== profileId);
-  saveTelegramProfiles(profiles);
-  
   const profilePath = path.join(TELEGRAM_USER_DATA, profileId);
+  if (isRunningWithArg('Telegram.exe', `-workdir "${profilePath}"`)) {
+    throw new Error('Close this Telegram window, then try again');
+  }
   if (fs.existsSync(profilePath)) {
     fs.rmSync(profilePath, { recursive: true, force: true });
   }
+
+  let profiles = loadTelegramProfiles();
+  profiles = profiles.filter(p => p.id !== profileId);
+  saveTelegramProfiles(profiles);
   forgetProfileActivity(profileId);
   return { success: true };
 }
@@ -340,8 +373,11 @@ function getFacebookProfiles() {
 
 function addFacebookProfile(name, avatarIndex) {
   const profiles = loadFacebookProfiles();
-  const nextIdNum = profiles.length > 0 ? Math.max(...profiles.map(p => parseInt(p.id.replace('fb_', '')) || 0)) + 1 : 1;
-  const newId = `fb_${nextIdNum}`;
+  const { num: nextIdNum, name: newId } = nextFreeName(
+    'fb_',
+    profiles.map(p => parseInt(p.id.replace('fb_', '')) || 0),
+    FACEBOOK_USER_DATA
+  );
 
   const newProfile = {
     id: newId,
@@ -379,14 +415,17 @@ function launchFacebookProfile(profileId) {
 }
 
 function deleteFacebookProfile(profileId) {
-  let profiles = loadFacebookProfiles();
-  profiles = profiles.filter(p => p.id !== profileId);
-  saveFacebookProfiles(profiles);
-
   const profilePath = path.join(FACEBOOK_USER_DATA, profileId);
+  if (isRunningWithArg('chrome.exe', `--user-data-dir="${profilePath}"`)) {
+    throw new Error('Close this Facebook window, then try again');
+  }
   if (fs.existsSync(profilePath)) {
     fs.rmSync(profilePath, { recursive: true, force: true });
   }
+
+  let profiles = loadFacebookProfiles();
+  profiles = profiles.filter(p => p.id !== profileId);
+  saveFacebookProfiles(profiles);
   forgetProfileActivity(profileId);
   return { success: true };
 }
